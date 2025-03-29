@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import EditUser from '../EditUser/EditUser';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -9,6 +10,7 @@ const Dashboard = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1); // Changed from 6 to 1 and made it updatable
     const [loading, setLoading] = useState(false);
+    const [editingUser, setEditingUser] = useState(null);
     const [message, setMessage] = useState({ text: '', type: '' });
     const [searchTerm, setSearchTerm] = useState('');
     const [allUsers, setAllUsers] = useState([]);
@@ -65,11 +67,36 @@ const Dashboard = () => {
         return () => {};
     }, [currentPage, navigate, fetchUsers]);
 
-    
+    const handleUpdate = async (updatedUser) => {
+        try {
+            await axios.put(`https://reqres.in/api/users/${updatedUser.id}`, updatedUser);
+            setUsers(users.map(user => 
+                user.id === updatedUser.id ? updatedUser : user
+            ));
+            setEditingUser(null);
+            showMessage('User updated successfully!', 'success');
+        } catch (error) {
+            showMessage('Failed to update user', 'error');
+        }
+    };
 
-    
+    const handleDelete = async (userId) => {
+        if (window.confirm('Are you sure you want to delete this user?')) {
+            try {
+                await axios.delete(`https://reqres.in/api/users/${userId}`);
+                setUsers(users.filter(user => user.id !== userId));
+                showMessage('User deleted successfully!', 'success');
+            } catch (error) {
+                showMessage('Failed to delete user', 'error');
+            }
+        }
+    };
 
-    
+    const handleEdit = (user) => {
+        setEditingUser(user);
+    };
+
+   
 
     // Add handlePageChange function
     const handlePageChange = (newPage) => {
@@ -97,7 +124,14 @@ const Dashboard = () => {
                                 <img src={user.avatar} alt={`${user.first_name}`} />
                                 <h3>{user.first_name} {user.last_name}</h3>
                                 <p>{user.email}</p>
-                                
+                                <div className="card-actions">
+                                    <button onClick={() => handleEdit(user)} className="edit-btn">
+                                        Edit
+                                    </button>
+                                    <button onClick={() => handleDelete(user.id)} className="delete-btn">
+                                        Delete
+                                    </button>
+                                </div>
                             </div>
                         ))}
                     </div>
@@ -116,7 +150,13 @@ const Dashboard = () => {
                 </>
             )}
 
-            
+            {editingUser && (
+                <EditUser 
+                    user={editingUser}
+                    onClose={() => setEditingUser(null)}
+                    onUpdate={handleUpdate}
+                />
+            )}
         </div>
     );
 };
