@@ -96,7 +96,10 @@ const Dashboard = () => {
         setEditingUser(user);
     };
 
-   
+    const handleLogout = () => {
+        localStorage.removeItem('authToken');
+        navigate('/login');
+    };
 
     // Add handlePageChange function
     const handlePageChange = (newPage) => {
@@ -106,7 +109,19 @@ const Dashboard = () => {
 
     return (
         <div className="dashboard">
-            
+            <header className="dashboard-header">
+                <h1>User Dashboard</h1>
+                <div className="search-container">
+                    <input
+                        type="text"
+                        placeholder="Search users..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="search-input"
+                    />
+                </div>
+                <button onClick={handleLogout} className="logout-btn">Logout</button>
+            </header>
 
             {message.text && (
                 <div className={`message ${message.type}`}>
